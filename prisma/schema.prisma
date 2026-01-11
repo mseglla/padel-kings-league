@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Player {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  pinHash   String
+  isAdmin   Boolean  @default(true)
+  division  String  @default("SECOND") // "FIRST" | "SECOND"
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  createdMatches Match[]       @relation("createdBy")
+  matchPlayers   MatchPlayer[]
+  pointEntries   PlayerPoints[]
+}
+
+model Season {
+  id        String   @id @default(cuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  status    String   @default("ACTIVE") // ACTIVE | CLOSED
+  createdAt DateTime @default(now())
+
+  matches   Match[]
+}
+
+model Match {
+  id              String   @id @default(cuid())
+  createdAt       DateTime @default(now())
+  playedAt        DateTime @default(now())
+  seasonId        String
+  createdById     String
+  setsA           Int
+  setsB           Int
+  spectacleRating Int?     // 1..5
+  note            String?
+
+  season       Season @relation(fields: [seasonId], references: [id])
+  createdBy    Player @relation("createdBy", fields: [createdById], references: [id])
+  players      MatchPlayer[]
+  points       PlayerPoints[]
+
+  @@index([seasonId, createdAt])
+}
+
+model MatchPlayer {
+  id        String @id @default(cuid())
+  matchId   String
+  playerId  String
+  team      String // "A" or "B"
+  gomet     String? // "GREEN" | "RED"
+
+  match     Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  player    Player @relation(fields: [playerId], references: [id])
+
+  @@unique([matchId, playerId])
+  @@index([playerId])
+}
+
+model PlayerPoints {
+  id          String @id @default(cuid())
+  matchId     String
+  playerId    String
+  pointsEarned Float
+
+  match       Match  @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  player      Player @relation(fields: [playerId], references: [id])
+
+  @@unique([matchId, playerId])
+  @@index([playerId])
+}
