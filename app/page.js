@@ -1,9 +1,7 @@
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 export default async function Home() {
   const session = await getSession();
-  redirect(session ? '/dashboard' : '/login');
+  redirect(session ? "/dashboard" : "/login");
 }
