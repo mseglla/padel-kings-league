@@ -30,7 +30,11 @@ export async function createMatchAction(payload) {
   const ppB = playerPointsForTeam(tpB);
 
   const session = await getSession();
-  if (!session?.playerId) throw new Error('Sessió no vàlida.');
+  if (!session?.playerId) throw new Error("Sessió no vàlida.");
+  const me = await prisma.player.findUnique({ where: { id: session.playerId } });
+  if (!me) throw new Error("Sessió caducada. Torna a fer login.");
+
+
 
   const match = await prisma.match.create({
     data: {
